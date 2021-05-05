@@ -2,11 +2,11 @@
 Plogist : Pattern {
 	var <>r, <>xi, <>length;
 
-	*new {| r=1.5, xi=0.1, length=inf |
+	*new { |r=1.5, xi=0.1, length=inf|
 		^super.newCopyArgs(r, xi, length);
 	}
 
-	embedInStream {|inval|
+	embedInStream { |inval|
 		var xn = xi;
 		var rStrm = r.asStream;
 		var rVal;
@@ -23,11 +23,11 @@ Plogist : Pattern {
 Pcml : ListPattern {
 	var <>r, <>g;
 
-	*new {| list, r=1.5, g=0.1, repeats=inf |
+	*new { |list, r=1.5, g=0.1, repeats=inf|
 		^super.new(list, repeats).r_(r).g_(g);
 	}
 
-	f {|r,x| ^1.0 - (r * x.squared) }//logistic
+	f { |r,x| ^1.0 - (r * x.squared) }
 
 	evolve {| prev, r, g |
 		var next = Array.newClear(prev.size), halfG = g * 0.5;
@@ -38,7 +38,7 @@ Pcml : ListPattern {
 		^next;
 	}
 
-	embedInStream {|inval|
+	embedInStream { |inval|
 		var items = list.copy;
 		var rStrm = r.asStream, gStrm = g.asStream;
 		var rVal, gVal;
@@ -52,18 +52,19 @@ Pcml : ListPattern {
 		^inval;
 	}
 
-	plot {| n=500 |
+	plot { |n=500,skip=0|
 		var rct, cell, stream = this.asStream, strVal;
 		var win;
-		rct = Rect(0, 0, list.size*2, n*2);
+		rct = Rect(0, 0, list.size, n);
 		win = Window("r: " ++ r ++ " g: " ++ g ++ " size: " ++ list.size ++ "x" ++ n, rct, false);
 		win.view.background = Color.black;
+		skip.do { stream.next };
 		win.drawFunc = {
 			n.do {|i|
 				strVal = stream.next;
 				strVal.do {|item,j|
 					Pen.fillColor = Color.gray(item);
-					Pen.fillRect(Rect(j*2, i*2, 2, 2));
+					Pen.fillRect(Rect(j, i, 1, 1));
 				};
 			};
 
@@ -75,10 +76,10 @@ Pcml : ListPattern {
 
 Pgcm : Pcml {
 
-	evolve {| prev, r, g |
+	evolve { |prev, r, g|
 		var next = Array.newClear(prev.size), nG = g / prev.size, sum = 0;
-		prev.do {| item, i | sum = sum + this.f(r, item) };
-		prev.do {| item, i | next[i] = ((1.0 - g) * this.f(r, item)) + (nG * sum) };
+		prev.do { |item, i| sum = sum + this.f(r, item) };
+		prev.do { |item, i| next[i] = ((1.0 - g) * this.f(r, item)) + (nG * sum) };
 		^next;
 	}
 }

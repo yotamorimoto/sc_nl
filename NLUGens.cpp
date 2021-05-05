@@ -1,20 +1,4 @@
-/*
- NLUGens by yota morimoto (http://yota.tehis.net/)
- 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
- */
+// NLUGens http://yota.tehis.net/
 
 #include "SC_PlugIn.h"
 
@@ -76,21 +60,21 @@ void Logist_next(Logist *unit, int inNumSamples)
 	float *out = ZOUT(0);
 	float freq = ZIN0(0);
 	double r = ZIN0(1);
-	
+
 	double x = unit->x;
 	float counter = unit->counter;
-	
+
 	float spc;
 	if(freq < SAMPLERATE)
 		spc = SAMPLERATE / sc_max(freq, 0.001f);
 	else spc = 1.f;
-	
+
 	LOOP(inNumSamples,
 		 if(counter >= spc){
 			 counter -= spc;
 			 x = logist(r, x);
 		 }
-		 counter++;		
+		 counter++;
 		 ZXP(out) = x;
 		 )
 	unit->x = x;
@@ -113,10 +97,10 @@ void Nagumo_next(Nagumo *unit, int inNumSamples)
 	double uh = ZIN0(0);
 	double vh = ZIN0(1);
 	float *pulse = ZIN(2);
-		
+
 	double u = unit->u;
 	double v = unit->v;
-	
+
 	LOOP(inNumSamples,
 		float zPulse = ZXP(pulse);
 		u += uh * (10.l * (- v + u - 0.3333333l*u*u*u + zPulse));
@@ -148,7 +132,7 @@ void FIS_next(FIS *unit, int inNumSamples)
 		for(int i=0; i<n; i++)
 			zx = sin(zr * zx);
 		ZXP(out) = zx;
-	)	
+	)
 }
 
 void FIS_Ctor(FIS *unit)
@@ -174,7 +158,7 @@ void CML_next(CML *unit, int inNumSamples)
 	if(freq < SAMPLERATE){
 		spc = SAMPLERATE / sc_max(freq, 0.001f);
 		slope = 1.f / spc;
-	} 
+	}
 	else spc = slope = 1.f;
 
 	LOOP(inNumSamples,
@@ -222,10 +206,10 @@ void GCM_next(GCM *unit, int inNumSamples)
 	if(freq < SAMPLERATE)
 		spc = SAMPLERATE / sc_max(freq, 0.001f);
 	else spc = 1.f;
-	
+
 	double sum = 0;
-	for (int i=0; i<LATTICE; i++) sum += logist(r, x[i]);//in theory should be in LOOP
-	
+	for (int i=0; i<LATTICE; i++) sum += logist(r, x[i]); // in theory should be in LOOP?
+
 	LOOP(inNumSamples,
 		if(counter >= spc){
 			counter -= spc;
@@ -272,18 +256,18 @@ void HCM_next(HCM *unit, int inNumSamples)
 	double g = ZIN0(2);
 	unsigned short x[GENEBIT];
 	double reciprocal = 1.l / GENEBIT;
-	
+
 	memcpy(x, unit->x, sizeof(unit->x));
 	float counter = unit->counter;
-	
+
 	float spc;
 	if(freq < SAMPLERATE)
 		spc = SAMPLERATE / sc_max(freq, 0.001f);
 	else spc = 1.f;
-	
+
 	double sum = 0;
 	double tmp;
-	
+
 	LOOP(inNumSamples,
 		 if(counter >= spc){
 			 counter -= spc;
@@ -310,7 +294,7 @@ void HCM_Ctor(HCM *unit)
 
 
 void TLogist_next(TLogist *unit, int inNumSamples)
-{	
+{
 	float trig = ZIN0(2);
 	if (trig > 0.f && unit->trig <= 0.f) {
 		double r = ZIN0(0);
@@ -322,7 +306,7 @@ void TLogist_next(TLogist *unit, int inNumSamples)
 }
 
 void TLogist_Ctor(TLogist *unit)
-{	
+{
 	double r = ZIN0(0);
 	ZOUT0(0) = unit->x = ZIN0(1);
 	SETCALC(TLogist_next);
