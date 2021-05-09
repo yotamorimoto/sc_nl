@@ -3,11 +3,7 @@ summary:: ugen coupled map lattice
 categories:: transnd>ugen
 
 description::
-implements coupled map lattice where f(x) is the logistic equation whose variable is r :
-
-x_{n+1}(i) = (1 - g) f(x_{n}(i)) + {g \over 2} (f(x_{n}(i-1)) + f(x_{n}(i+1)))
-
-no interpolation.
+one-way coupling of nonlinear maps.
 
 CLASSMETHODS::
 
@@ -30,6 +26,8 @@ EXAMPLES::
 
 code::
 s.scope(2, 0, 64).style_(2);
+
+// watchout LOUD
 
 // g = 0 same as Logist
 {var sig=CML.ar(SampleRate.ir/2, MouseY.kr(1.5, 1.9), 0);[Delay1.ar(sig),sig] }.play;

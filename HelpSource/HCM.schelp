@@ -1,9 +1,9 @@
 title:: HCM
-summary:: ugen hypercubic coupled maps
+summary:: ugen hypercubic lattice
 categories:: transnd>ugen
 
 description::
-no interpolation.
+nonlinear population dynamics and mutation process in gene space.
 
 CLASSMETHODS::
 
@@ -28,6 +28,6 @@ EXAMPLES::
 
 code::
 s.scope(2, 0, 64).style_(2);
-
-{var sig=HCM.ar(SampleRate.ir/2, MouseY.kr(1.5, 1.9), MouseX.kr(0, 4));[Delay1.ar(sig),sig] }.play;
+// watchout LOUD
+{var sig=HCM.ar(SampleRate.ir/3, MouseY.kr(1.5, 3.0), MouseX.kr(0, 1));[Delay1.ar(sig),sig] }.play;
 ::

@@ -3,11 +3,7 @@ summary:: ugen globally coupled maps
 categories:: transnd>ugen
 
 description::
-implements globally coupled maps where f(x) is the logistic equation whose variable is r :
-
-x_{n+1}(i) = (1 - g) f(x_{n}(i)) + {g \over N} \sum_{j=1} ^ {N} f(x_{n}(j))
-
-no interpolation.
+implements globally coupled maps.
 
 CLASSMETHODS::
 
@@ -33,9 +29,11 @@ EXAMPLES::
 code::
 s.scope(2, 0, 64).style_(2);
 
+// watchout LOUD
+
 // g = 0 same as Logist
-{var sig=GCM.ar(SampleRate.ir/1.5, MouseY.kr(1.5, 1.9), 0);[Delay1.ar(sig),sig] }.play;
+{var sig=GCM.ar(SampleRate.ir/1.5, MouseY.kr(1.5, 2.0), 0);[Delay1.ar(sig),sig] }.play;
 
 // g > 0
-{var sig=GCM.ar(SampleRate.ir/1.5, MouseY.kr(1.5, 1.9), MouseX.kr(0, 1));[Delay1.ar(sig),sig] }.play;
+{var sig=GCM.ar(SampleRate.ir/1.5, MouseY.kr(1.5, 2.0), MouseX.kr(0, 1));[Delay1.ar(sig),sig] }.play;
 ::

@@ -20,18 +20,18 @@ audio rate pulse
 EXAMPLES::
 
 code::
-s.boot;
+s.scope(2, 0, 64).style_(2);
 
-//plug&play with pulse
-{ Nagumo.ar(0.1, 0.001, LFPulse.ar(1, 0, MouseX.kr(0.0, 0.5), MouseY.kr(0.01, 0.5)), 0.1) }.play;
-{ Nagumo.ar(0.1, 0.005, LFPulse.ar(1000, 0, MouseX.kr(0.0, 0.5), MouseY.kr(0.01, 0.5)), 0.1) }.play;
-{ Nagumo.ar(0.1, 0.1, LFPulse.ar(4410, 0, MouseX.kr(0.0, 0.5), MouseY.kr(0.01, 0.5)), 0.1) }.play;
-{ Nagumo.ar(0.1, 0.1, LFPulse.ar(4410, 0, MouseX.kr(0.0, 0.5), MouseY.kr(0.01, 0.5)), 0.1) }.play;
+// watchout LOUD
 
-//non-pulse, watch-out. noisy!
-{ Nagumo.ar(0.1, 0.00001, Impulse.ar(10, 0, MouseY.kr(0.01, 0.5))) }.play;
-{ Nagumo.ar(0.1, 0.001, Impulse.ar(10, 0, MouseY.kr(0.01, 0.5))) }.play;
-{ Nagumo.ar(0.1, 0.001, SinOsc.ar(50, 0, MouseY.kr(0.01, 0.5))) }.play;
-{ Nagumo.ar(0.1, 0.1, SinOsc.ar(50, 0, MouseY.kr(0.01, 0.5))) }.play;
-{ Nagumo.ar(0.1, 0.1, BrownNoise.ar(MouseY.kr(0.01, 0.5))) }.play;
+// plugin pulse
+// a kind of pulse divider
+{var sig=Nagumo.ar(0.1, 0.005, LFPulse.ar(1000, 0, MouseX.kr(0.0, 0.5), MouseY.kr(0.01, 0.5)));[Delay1.ar(sig),sig] }.play;
+
+
+// nonlinear dynamics in nerves
+{var sig=Nagumo.ar(0.1, 0.02, LFPulse.ar(1400, 0, MouseX.kr(0.0, 0.5), MouseY.kr(0.01, 0.5)));[Delay1.ar(sig),sig] }.play;
+
+// non-pulse
+{var sig=Nagumo.ar(0.1, 0.1, BrownNoise.ar(MouseY.kr(0.01, 0.5)));[Delay1.ar(sig),sig] }.play;
 ::

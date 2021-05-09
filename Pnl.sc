@@ -29,7 +29,7 @@ Pcml : ListPattern {
 
 	f { |r,x| ^1.0 - (r * x.squared) }
 
-	evolve {| prev, r, g |
+	evolve { |prev, r, g|
 		var next = Array.newClear(prev.size), halfG = g * 0.5;
 		prev.size.do({|i|
 			next[i] = ((1.0 - g) * this.f(r, prev[i]))
@@ -77,9 +77,9 @@ Pcml : ListPattern {
 Pgcm : Pcml {
 
 	evolve { |prev, r, g|
-		var next = Array.newClear(prev.size), nG = g / prev.size, sum = 0;
+		var next = Array.newClear(prev.size), gN = g / prev.size, sum = 0;
 		prev.do { |item, i| sum = sum + this.f(r, item) };
-		prev.do { |item, i| next[i] = ((1.0 - g) * this.f(r, item)) + (nG * sum) };
+		prev.do { |item, i| next[i] = ((1.0 - g) * this.f(r, item)) + (gN * sum) };
 		^next;
 	}
 }

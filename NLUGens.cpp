@@ -1,9 +1,11 @@
-// NLUGens http://yota.tehis.net/
+// NLUGens
+// http://yota.tehis.net/
 
 #include "SC_PlugIn.h"
+#include <limits>
 
 #define LATTICE 10
-#define GENEBIT 16
+#define GENEBIT 32
 
 static InterfaceTable *ft;
 
@@ -25,29 +27,27 @@ struct GCM : public Unit {
 	float counter;
 };
 struct HCM : public Unit {
-	unsigned short x[GENEBIT];
+	uint32 x[GENEBIT];
 	float counter;
 };
 struct TLogist : public Logist {
 	double trig;
 };
 
-extern "C" {
-	void Logist_next(Logist *unit, int inNumSamples);
-	void Logist_Ctor(Logist *unit);
-	void Nagumo_next(Nagumo *unit, int inNumSamples);
-	void Nagumo_Ctor(Nagumo *unit);
-	void FIS_next(FIS *unit, int inNumSamples);
-	void FIS_Ctor(FIS *unit);
-	void CML_next(CML *unit, int inNumSamples);
-	void CML_Ctor(CML *unit);
-	void GCM_next(GCM *unit, int inNumSamples);
-	void GCM_Ctor(GCM *unit);
-	void HCM_next(HCM *unit, int inNumSamples);
-	void HCM_Ctor(HCM *unit);
-	void TLogist_next(TLogist *unit, int inNumSamples);
-	void TLogist_Ctor(TLogist *unit);
-}
+static void Logist_next(Logist *unit, int inNumSamples);
+static void Logist_Ctor(Logist *unit);
+static void Nagumo_next(Nagumo *unit, int inNumSamples);
+static void Nagumo_Ctor(Nagumo *unit);
+static void FIS_next(FIS *unit, int inNumSamples);
+static void FIS_Ctor(FIS *unit);
+static void CML_next(CML *unit, int inNumSamples);
+static void CML_Ctor(CML *unit);
+static void GCM_next(GCM *unit, int inNumSamples);
+static void GCM_Ctor(GCM *unit);
+static void HCM_next(HCM *unit, int inNumSamples);
+static void HCM_Ctor(HCM *unit);
+static void TLogist_next(TLogist *unit, int inNumSamples);
+static void TLogist_Ctor(TLogist *unit);
 
 inline double logist(double r, double x);
 inline double logist(double r, double x)
@@ -148,34 +148,26 @@ void CML_next(CML *unit, int inNumSamples)
 	double r = ZIN0(1);
 	double g = ZIN0(2);
 	double x[LATTICE];
-//	double t[LATTICE];
 
 	memcpy(x, unit->x, sizeof(unit->x));
 	float counter = unit->counter;
 
 	float spc;
-	float slope;
-	if(freq < SAMPLERATE){
+	if (freq < SAMPLERATE)
 		spc = SAMPLERATE / sc_max(freq, 0.001f);
-		slope = 1.f / spc;
-	}
-	else spc = slope = 1.f;
+	else spc = 1.f;
 
 	LOOP(inNumSamples,
-		if(counter >= spc){
+		if (counter >= spc) {
 			counter -= spc;
-			for (int i=1; i<LATTICE-1; i++) {
-				// x[i] = x[i] rather than new = old
-				// or wrapping? sc_wrap(i-1, 0, MAXWIDTH-1)
-				x[i] = (1.l - g) * logist(r, x[i]) + 0.5 * g * (logist(r, x[i+1]) + logist(r, x[i-1]));//no wrapping
-				// t = x then x = t
-				//t[i] = (1.l - g) * logist(r, x[i]) + 0.5 * g * (logist(r, x[i+1]) + logist(r, x[i-1]));//no wrapping
+			for (int i=0; i<LATTICE; i++) {
+				// one-way coupling sonically more interesting
+				// also avoids negative modulo
+				x[i] = (1.l - g) * logist(r, x[i]) + g * logist(r, x[(i+1)%LATTICE]);
 			}
-			//memcpy(x, t, sizeof(t));
 		}
 		counter++;
-		//ZXP(out) = t[5];
-		 ZXP(out) = x[5];
+		ZXP(out) = x[5];
 	)
 	unit->counter = counter;
 	memcpy(unit->x, x, sizeof(x));
@@ -183,10 +175,12 @@ void CML_next(CML *unit, int inNumSamples)
 
 void CML_Ctor(CML *unit)
 {
+	RGET
 	SETCALC(CML_next);
-	for (int i=0; i<LATTICE; i++) unit->x[i] = IN0(3);
+	for (int i=0; i<LATTICE; i++) unit->x[i] = frand(s1,s2,s3);
 	unit->counter = 0.f;
 	CML_next(unit, 1);
+	RPUT
 }
 
 
@@ -198,24 +192,24 @@ void GCM_next(GCM *unit, int inNumSamples)
 	double g = ZIN0(2);
 	double x[LATTICE];
 	double reciprocal = 1.l / LATTICE;
-
-	memcpy(x, unit->x, sizeof(unit->x));
 	float counter = unit->counter;
+	memcpy(x, unit->x, sizeof(unit->x));
 
 	float spc;
-	if(freq < SAMPLERATE)
+	if (freq < SAMPLERATE)
 		spc = SAMPLERATE / sc_max(freq, 0.001f);
 	else spc = 1.f;
 
-	double sum = 0;
-	for (int i=0; i<LATTICE; i++) sum += logist(r, x[i]); // in theory should be in LOOP?
+	// once per block is more interesting
+	double sum = 0.l;
+	for (int i=0; i<LATTICE; i++) sum += logist(r, x[i]);
 
 	LOOP(inNumSamples,
-		if(counter >= spc){
+		if (counter >= spc) {
 			counter -= spc;
-			for (int i=0; i<LATTICE; i++)
-				// x[i] = x[i] rather than new = old
+			for (int i=0; i<LATTICE; i++) {
 				x[i] = (1.l - g) * logist(r, x[i]) + g * reciprocal * sum;
+			}
 		}
 		counter++;
 		ZXP(out) = x[5];
@@ -226,10 +220,12 @@ void GCM_next(GCM *unit, int inNumSamples)
 
 void GCM_Ctor(GCM *unit)
 {
+	RGET
 	SETCALC(GCM_next);
-	for (int i=0; i<LATTICE; i++) unit->x[i] = IN0(3);
+	for (int i=0; i<LATTICE; i++) unit->x[i] = frand(s1,s2,s3);
 	unit->counter = 0.f;
 	GCM_next(unit, 1);
+	RPUT
 }
 
 
@@ -238,15 +234,17 @@ inline unsigned flip(unsigned x, unsigned bit)
 {
 	return x ^ (1UL << bit);
 }
-inline double i2f(unsigned short s);
-inline double i2f(unsigned short s)
+// uint32
+uint32 halfmax = std::numeric_limits<uint32>::max() / 2;
+inline double l2f(uint32 in);
+inline double l2f(uint32 in)
 {
-	return s / 32768.l - 1.l;
+	return (double)in / halfmax - 1.l;
 }
-inline unsigned short f2i(double f);
-inline unsigned short f2i(double f)
+inline uint32 f2l(double in);
+inline uint32 f2l(double in)
 {
-	return (unsigned short)(f * 32768.l + 32768.l);
+	return (uint32)(in * halfmax + halfmax);
 }
 void HCM_next(HCM *unit, int inNumSamples)
 {
@@ -254,31 +252,36 @@ void HCM_next(HCM *unit, int inNumSamples)
 	float freq = ZIN0(0);
 	double r = ZIN0(1);
 	double g = ZIN0(2);
-	unsigned short x[GENEBIT];
+	uint32 x[GENEBIT];
 	double reciprocal = 1.l / GENEBIT;
 
 	memcpy(x, unit->x, sizeof(unit->x));
 	float counter = unit->counter;
 
 	float spc;
-	if(freq < SAMPLERATE)
+	if (freq < SAMPLERATE)
 		spc = SAMPLERATE / sc_max(freq, 0.001f);
 	else spc = 1.f;
 
-	double sum = 0;
-	double tmp;
+	// once per control is more interesting
+	// provided we have sufficient bit space like uint32
+	// otherwise it will repeat (which maybe somewhat useful?)
+	double sum = 0.l;
+	for (int i=0; i<GENEBIT; i++)
+		for (int j=0; j<GENEBIT; j++) sum += logist(r, l2f(flip(x[j], i)));
 
 	LOOP(inNumSamples,
-		 if(counter >= spc){
+		 if (counter >= spc) {
 			 counter -= spc;
-			 for (int i=0; i<GENEBIT; i++){
-				 for (int j=0; j<GENEBIT; j++) sum += logist(r, i2f(flip(x[j], i)));
-				 tmp = (1.l - g) * logist(r, i2f(x[i])) + g * reciprocal * sum;
-				 x[i] = f2i(tmp);
+			 for (int i=0; i<GENEBIT; i++) {
+				 // uint16 is enough if we renew the sum everytime?
+				 // for (int j=0; j<GENEBIT; j++) sum += logist(r, l2f(flip(x[j], i)));
+				 double tmp = (1.l - g) * logist(r, l2f(x[i])) + g * reciprocal * sum;
+				 x[i] = f2l(tmp);
 			 }
 		 }
 		 counter++;
-		 ZXP(out) = i2f(x[4]);
+		 ZXP(out) = l2f(x[15]);
 	)
 	memcpy(unit->x, x, sizeof(x));
 	unit->counter = counter;
@@ -287,7 +290,7 @@ void HCM_next(HCM *unit, int inNumSamples)
 void HCM_Ctor(HCM *unit)
 {
 	SETCALC(HCM_next);
-	for (int i=0; i<GENEBIT; i++) unit->x[i] = 1;
+	for (int i=0; i<GENEBIT; i++) unit->x[i] = i%2;
 	unit->counter = 0.f;
 	HCM_next(unit, 1);
 }
