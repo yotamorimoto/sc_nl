@@ -281,7 +281,7 @@ void HCM_next(HCM *unit, int inNumSamples)
 			 }
 		 }
 		 counter++;
-		 ZXP(out) = l2f(x[15]);
+		 ZXP(out) = sc_clip(l2f(x[15]), -1.0, 1.0);
 	)
 	memcpy(unit->x, x, sizeof(x));
 	unit->counter = counter;

@@ -29,5 +29,5 @@ EXAMPLES::
 code::
 s.scope(2, 0, 64).style_(2);
 // watchout LOUD
-{var sig=HCM.ar(SampleRate.ir/3, MouseY.kr(1.5, 3.0), MouseX.kr(0, 1));[Delay1.ar(sig),sig] }.play;
+{var sig=HCM.ar(SampleRate.ir/4, MouseY.kr(1.5, 3.0), MouseX.kr(0, 1));[Delay1.ar(sig),sig] }.play;
 ::

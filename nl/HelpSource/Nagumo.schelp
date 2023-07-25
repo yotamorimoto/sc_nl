@@ -30,8 +30,16 @@ s.scope(2, 0, 64).style_(2);
 
 
 // nonlinear dynamics in nerves
+{var sig=Nagumo.ar(0.1, 0.001, Pulse.ar(100, MouseX.kr(0.0, 0.5), MouseY.kr(0.01, 0.5)));sig = LeakDC.ar(sig);[Delay1.ar(sig),sig] }.play;
+
 {var sig=Nagumo.ar(0.1, 0.02, LFPulse.ar(1400, 0, MouseX.kr(0.0, 0.5), MouseY.kr(0.01, 0.5)));[Delay1.ar(sig),sig] }.play;
 
 // non-pulse
 {var sig=Nagumo.ar(0.1, 0.1, BrownNoise.ar(MouseY.kr(0.01, 0.5)));[Delay1.ar(sig),sig] }.play;
+
+{var sig=Nagumo.ar(0.1, 0.00001, GrayNoise.ar(MouseY.kr(0.1, 0.4)));[Delay1.ar(sig),sig] }.scope;
+
+{var sig=Nagumo.ar(0.1, 0.0001, PinkNoise.ar(MouseY.kr(0.1, 0.4)));sig = LeakDC.ar(sig);[Delay1.ar(sig),sig] }.scope;
+
+{var sig=Nagumo.ar(0.1, 0.0001, BrownNoise.ar(MouseY.kr(0.1, 0.4)));sig = LeakDC.ar(sig);[Delay1.ar(sig),sig] }.scope;
 ::
